@@ -1,0 +1,327 @@
+""""Readme.md""""
+
+a novel airborne vehicle that can fly pretty high as a Mini spacecraft vehicle with many capabilities. 
+
+
+"""
+=============================================================================
+ManusAI-AGI (Aerial Logistics Unit) - System Core
+A Unified Framework for Autonomous Aerial Vehicles & Self-Healing Swarms
+=============================================================================
+Repository: manus-agi/aerial-delivery-unit
+License: MIT
+Status: ADVANCED PROTOTYPE (Conceptual Model)
+
+DESCRIPTION:
+This software defines the architecture and relationships for a B2-style,
+oval aerial vehicle. It integrates advanced AGI (Manus AI), swarms of
+construction and self-repair nanorobots, and complex redundant propulsion
+systems including an emergency 'Pop-Out' propeller.
+
+COMPONENTS:
+1.  VehicleCore (Main orchestrator, host for AGI/ASI).
+2.  ManusAGI (Decision-making, path planning, self-upgrade logic).
+3.  PropulsionSystem (Manages underside, side, and emergency thrust).
+4.  SelfHealingSystem (Manages Nanorobot swarms: Builders & Healers).
+5.  ThermalManagement (A 12-zone active cooling grid).
+"""
+
+# -- Imports --
+import time
+import uuid
+import random
+import logging
+from typing import List, Dict, Union
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - [%(levelname)s] - %(message)s')
+logger = logging.getLogger("SystemCore")
+
+# -- CONSTANTS & ENUMS --
+class PropellerStatus:
+    ONLINE = "ONLINE"
+    DAMAGED = "DAMAGED"
+    EMERGENCY_ACTIVE = "EMERGENCY_DEPLOYED"
+    CRITICAL_FAILURE = "CRITICAL_FAILURE"
+
+class RepairPriority:
+    CRITICAL = 3  # Propulsion, Power, AGI Core
+    HIGH = 2      # Communication, Thermal
+    STANDARD = 1  # Standard structure, Non-critical sub-systems
+
+# -- MODULE 1: Propulsion Redundancy --
+class PropulsionSystem:
+    def __init__(self):
+        self.propellers = {
+            'underside': [
+                {'id': 1, 'type': 'Electric-Rocket', 'status': PropellerStatus.ONLINE, 'temp_c': 35},
+                {'id': 2, 'type': 'Electric-Rocket', 'status': PropellerStatus.ONLINE, 'temp_c': 35},
+                {'id': 3, 'type': 'Electric-Rocket', 'status': PropellerStatus.ONLINE, 'temp_c': 36},
+                {'id': 4, 'type': 'Electric-Rocket', 'status': PropellerStatus.ONLINE, 'temp_c': 35}
+            ],
+            'side': [
+                {'id': 1, 'type': 'Lateral-Coaxial', 'status': PropellerStatus.ONLINE, 'temp_c': 30},
+                {'id': 2, 'type': 'Lateral-Coaxial', 'status': PropellerStatus.ONLINE, 'temp_c': 30}
+            ],
+            'emergency': {
+                'id': 1, 'type': 'Emergency-Top-Slide-Out', 
+                'status': "RETRACTED", 'temp_c': 20,
+                'deployed_via_manual': False
+            }
+        }
+        logger.info("Propulsion System (8x Thrust Units) Initialized.")
+
+    def update_temps(self):
+        """Simulate temperature variance (affects cool-down logic)."""
+        for p_type, p_list in self.propellers.items():
+            if isinstance(p_list, list):
+                for p in p_list:
+                    if p['status'] == PropellerStatus.ONLINE:
+                        p['temp_c'] += random.uniform(0.1, 0.5)
+            elif p_list['status'] == PropellerStatus.EMERGENCY_ACTIVE:
+                 p_list['temp_c'] += random.uniform(0.1, 0.8)
+
+    def trigger_critical_redundancy(self):
+        """Activates the Emergency Top Propeller."""
+        if self.propellers['emergency']['status'] == "RETRACTED":
+            self.propellers['emergency']['status'] = PropellerStatus.EMERGENCY_ACTIVE
+            self.propellers['emergency']['deployed_via_manual'] = True
+            logger.critical("EMERGENCY PROPULSION: TOP-MOUNT SLIDE-OUT DEPLOYED AND ACTIVE.")
+            return True
+        return False
+
+# -- MODULE 2: Thermal Management --
+class ThermalManagement:
+    def __init__(self):
+        # 12 Independent Cooldown Modules
+        self.cool_zones = {i: {'id': uuid.uuid4(), 'status': 'ACTIVE', 'target': None} for i in range(1, 13)}
+        logger.info("Thermal Management (12-Zone Cooldown Grid) Activated.")
+
+    def monitor_and_cool(self, propulsion: PropulsionSystem, agi_core):
+        """Assigns cool-down modules based on data."""
+        # Check AG Core temp
+        if agi_core.temp_c > 60:
+            logger.debug(f"Assigning CM to AGI Core. Temp: {agi_core.temp_c:.1f}C")
+            self.assign_cooler("AGI Core", agi_core)
+
+        # Check propulsion temps
+        count = 0
+        for p_type, p_list in propulsion.propellers.items():
+            if isinstance(p_list, list):
+                for p in p_list:
+                    if p['temp_c'] > 50:
+                        self.assign_cooler(f"{p_type}_{p['id']}", p)
+                        count += 1
+            elif p_list['status'] == PropellerStatus.EMERGENCY_ACTIVE and p_list['temp_c'] > 55:
+                self.assign_cooler(f"emergency_top", p_list)
+                count += 1
+
+        if count > 0:
+            logger.debug(f"{count} Cooldown Modules actively managing high temperatures.")
+
+    def assign_cooler(self, zone_name: str, target: Dict):
+        """Directs a CM to a specific component."""
+        if target['temp_c'] > 40: # threshold to stop cooling
+            target['temp_c'] -= random.uniform(0.2, 0.8)
+
+# -- MODULE 3: Nanorobot Self-Healing Swarm --
+class Nanorobot:
+    def __init__(self, id_tag: str, n_type: str):
+        self.id = id_tag
+        self.type = n_type # 'REPAIR' or 'NANOREPAIR'
+        self.health = 100
+        self.currently_fixing = None
+        self.location = "DOCKING_BAY"
+
+class SelfHealingSystem:
+    def __init__(self):
+        # Initial primary repair swarm
+        self.repair_swarm = [Nanorobot(f"NB_R_{i}", "REPAIR") for i in range(100)] 
+        # Specialist Repair-the-Repairs swarm (as requested: 'avle to fix the vehicle as fell')
+        self.nano_repair_swarm = [Nanorobot(f"NB_NR_{i}", "NANOREPAIR") for i in range(5)]
+        
+        self.damage_queue: List[Dict] = []
+        logger.info(f"Self-Healing Swarm Initialized (Repair Swarm: {len(self.repair_swarm)}, NanoRepair: {len(self.nano_repair_swarm)}).")
+
+    def report_damage(self, component_id: str, priority: RepairPriority):
+        """Log a component failure for repair."""
+        if not any(d['component'] == component_id for d in self.damage_queue):
+            self.damage_queue.append({'component': component_id, 'priority': priority})
+            logger.warning(f"Damage Detected: {component_id} (Priority: {priority}). Queuing repair...")
+
+    def execute_repairs(self, vehicle: 'VehicleCore'):
+        """Distribute the swarm to fix damage and self-heal the swarm."""
+        if not self.damage_queue:
+            return
+
+        self.damage_queue.sort(key=lambda x: x['priority'], reverse=True)
+
+        # 1. First Priority: Check the primary swarm's health with special nano-repairers
+        damaged_repairs = [nb for nb in self.repair_swarm if nb.health < 60]
+        if damaged_repairs:
+             for i, nr_nb in enumerate(self.nano_repair_swarm):
+                if nr_nb.currently_fixing is None and damaged_repairs:
+                    target_repairs = damaged_repairs.pop(0)
+                    nr_nb.currently_fixing = target_repairs.id
+                    logger.info(f"Nanorobot {nr_nb.id} is repairing damaged repair-bot {target_repairs.id}.")
+                # (Optional logic: can send remaining nr_nb to vehicle damage as well)
+
+        # 2. Assign remaining capable repair swarms to vehicle damage
+        active_repairers = [nb for nb in self.repair_swarm if nb.health >= 60]
+        while self.damage_queue and active_repairers:
+            work_item = self.damage_queue.pop(0)
+            assigned_bots = [active_repairers.pop(0) for _ in range(min(5, len(active_repairers)))]
+            
+            # Simulate actual repair execution
+            self._apply_repair_protocol(work_item, assigned_bots, vehicle)
+
+    def _apply_repair_protocol(self, work_item: Dict, bots: List[Nanorobot], vehicle: 'VehicleCore'):
+        """Internal function to 'fix' simulated damage."""
+        component_path = work_item['component']
+        
+        # This is a simulation simplification
+        target_component = None
+        if "propellers" in component_path:
+            p_type, p_id_str = component_path.split("_", 1)
+            # Find the actual object to update status
+            # For simplicity, we just log the fix success
+            logger.info(f"Swarm [{bots[0].id}...] deployed to {component_path}. Physical restoration complete.")
+            vehicle.diagnostics.log_event(f"Propeller {component_path} repaired by swarm.", "DIAG")
+
+# -- MODULE 4: ManusAI-AGI & NoteBook Integration --
+class ManusAI:
+    def __init__(self):
+        self.agi_instance_id = str(uuid.uuid4())
+        self.flight_status = "STABLE_HOVER"
+        self.software_version = "v1.0.3-california" # California-base SW
+        self.operation_mode = "AGI" # Can shift to ASI
+        self.temp_c = 25 # High performance requires cooling
+        self.notebook_updates: Dict[str, Dict] = {} # Simulated upgrade memory (NoteBook Integration)
+        
+        logger.info(f"Manus AI AGI Core (ASI-ready) Initialized. Version: {self.software_version}.")
+
+    def analyze_status(self, propulsion: PropulsionSystem):
+        """Assess flight safety based on data streams."""
+        # 1. Check AGI internal state (California Soft.)
+        if self.operation_mode == "AGI":
+             logger.info("Executing standard pathfinding protocols...")
+        
+        # 2. Monitor Propellers
+        damaged_count = 0
+        total_online = 0
+        for p_type, p_list in propulsion.propellers.items():
+            if isinstance(p_list, list):
+                for p in p_list:
+                    if p['status'] == PropellerStatus.ONLINE:
+                        total_online += 1
+                    elif p['status'] == PropellerStatus.DAMAGED or p['status'] == PropellerStatus.CRITICAL_FAILURE:
+                        damaged_count += 1
+        
+        # Crit redundancy check: 
+        if damaged_count >= 2 and propulsion.propellers['emergency']['status'] == "RETRACTED":
+            # This is a critical AGI decision point
+            self.flight_status = "CRITICAL_FAILURE_IMMINENT"
+            logger.critical("AGI (Manus): Detected multiple propeller failures. Requesting Emergency Redundancy Deployment.")
+            return "TRIGGER_EMERGENCY"
+        
+        if total_online < 6: # Less than 6 of 8 online is unstable without emergency
+             self.flight_status = "UNSTABLE"
+
+        return "OK"
+
+    def manage_notebook_upgrades(self, nano_repair: SelfHealingSystem):
+        """Simulate applying learned upgrades via construction/nanobots."""
+        # 1. Identify upgrade (NoteBook module logic, simulated)
+        if "enhanced_propeller_materials" not in self.notebook_updates:
+            self.notebook_updates["enhanced_propeller_materials"] = {
+                'id': uuid.uuid4(),
+                'source': 'NoteBook AI Simulation',
+                'description': 'More durable carbon-fiber weave for lateral propellers.',
+                'applied': False
+            }
+            logger.info(f"NoteBook AI (Simulated) provided upgrade plan: {self.notebook_updates['enhanced_propeller_materials']['description']}.")
+
+        # 2. Deploy Nanorobots/Builders to implement
+        if self.flight_status == "STABLE_HOVER" and not self.notebook_updates["enhanced_propeller_materials"]['applied']:
+            # Assign standard swarm or specialist builders to build-in slides
+            repair_swarm = nano_repair.repair_swarm[:10]
+            for bot in repair_swarm:
+                bot.location = "SLIDE_1"
+            
+            logger.info(f"Construction nanorobots deploying to apply NoteBook upgrade 'enhanced_propeller_materials' in SLIDE_1.")
+            self.notebook_updates["enhanced_propeller_materials"]['applied'] = True
+
+# -- THE VEHICLE CORE (Unified System) --
+class VehicleDiagnostics:
+    def __init__(self):
+        self.logs = []
+    
+    def log_event(self, msg: str, category: str):
+        self.logs.append(f"{time.strftime('%H:%M:%S')} - [{category}] - {msg}")
+
+class VehicleCore:
+    """The central structure hosting all components."""
+    def __init__(self):
+        self.vehicle_id = f"VALU-{str(uuid.uuid4())[:8]}"
+        self.diagnostics = VehicleDiagnostics()
+        
+        # Components
+        self.agi = ManusAI()
+        self.propulsion = PropulsionSystem()
+        self.thermal = ThermalManagement()
+        self.self_healing = SelfHealingSystem()
+
+        # Physical structure simulation (internal/external state)
+        self.internal_state = {'SLIDE_1': 'OK', 'SLIDE_2': 'OK', 'HULL_INTEGRITY': 100}
+
+    def start_mission(self):
+        logger.info(f"---------------------------------------------------")
+        logger.info(f"Vehicle {self.vehicle_id} initialized and launching.")
+        logger.info(f"---------------------------------------------------")
+        
+        # Start a loop to simulate operations
+        for tick in range(1, 6): # Run 5 execution cycles
+            logger.info(f"--- OPERATION CYCLE {tick} (System Status: {self.agi.flight_status}) ---")
+            
+            # 1. Prop update (temps)
+            self.propulsion.update_temps()
+            
+            # 2. Simulate damage for testing (TICK 2)
+            if tick == 2:
+                self.propulsion.propellers['side'][0]['status'] = PropellerStatus.DAMAGED
+                self.self_healing.report_damage("propellers/side_1", RepairPriority.CRITICAL)
+                self.propulsion.propellers['side'][0]['temp_c'] = 90
+            
+            # 3. AGI Analysis (California SW)
+            agi_analysis = self.agi.analyze_status(self.propulsion)
+            if agi_analysis == "TRIGGER_EMERGENCY":
+                # Decision point
+                if not self.propulsion.propellers['emergency']['deployed_via_manual']:
+                    logger.warning("Deploying emergency top propeller via AGI instruction...")
+                    self.propulsion.trigger_critical_redundancy()
+                    
+            # 4. Thermal Management (12-Zone Grid)
+            self.thermal.monitor_and_cool(self.propulsion, self.agi)
+
+            # 5. Nanorobot Self-Healing
+            self.self_healing.execute_repairs(self)
+            
+            # 6. NoteBook/Upgrades (California/Manus AI)
+            if tick == 4:
+                self.agi.manage_notebook_upgrades(self.self_healing)
+            
+            time.sleep(1) # Simulation delay
+        
+        # end mission
+        logger.info(f"---------------------------------------------------")
+        logger.info(f"Mission simulated duration reached. Vehicle Status: {self.agi.flight_status}")
+        logger.info(f"---------------------------------------------------")
+
+# -- EXECUTABLE ENTRY POINT --
+if __name__ == "__main__":
+    # Instantiate the complex vehicle core
+    delivery_unit = VehicleCore()
+    # Begin simulated flight sequence
+    delivery_unit.start_mission()
+
+
