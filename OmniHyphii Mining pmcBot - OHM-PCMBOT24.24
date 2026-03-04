@@ -1,0 +1,72 @@
+""""Readme.md""""
+
+a advanced precious metal mining robot with various advanced capabilities with outerspace Detection from the ground 
+
+
+"""
+Omni-Harvester Controller v1.0.0
+Integrated for U.S. Mineral Sovereignty & Planetary Resource Extraction
+"""
+
+import desci_blockchain as desci
+import asi_core
+import grok_logic
+from mit_tech import asteroid_radar
+from campbell_energy import thermal_converter
+
+class OmniHarvester:
+    def __init__(self):
+        self.location = "Anderson Creek, NC"
+        self.mode = "Amphibious/Flight"
+        self.power_reserve = {"Solar": 100, "Thermal": 100, "Hydro": 100}
+        self.utility_tokens = {"StrawberryFi": 5000, "Manus": 2500}
+        
+        # Repair Drone Fleet
+        self.drones = [
+            RepairDrone(id=1, tool="PlasmaWelder", size="3ft"),
+            RepairDrone(id=2, tool="PlasmaWelder", size="3ft")
+        ]
+        
+        # Software Payload Integration
+        self.payload = {
+            "NY_Library": [f"NY_Soft_{i}" for i in range(500)],
+            "Campbell_Library": [f"CU_Soft_{i}" for i in range(500)],
+            "MIT_Library": [f"MIT_Tech_{i}" for i in range(100)],
+            "NC_SD_Hardware": [f"Utility_Equip_{i}" for i in range(100)]
+        }
+
+    def detect_minerals(self, mode="Subterranean"):
+        """Uses 100 space-capabilities to find asteroid/ground metals."""
+        print("Activating MIT-San Diego Deep Space & Ground Radar...")
+        scan_results = asteroid_radar.scan_ground(depth="10km")
+        return scan_results
+
+    def harvest_and_replace(self, target_metal):
+        """Extracts metal and injects myco-fungi structural seeds."""
+        print(f"Harvesting {target_metal} for the United States Treasury...")
+        # Replacement Logic: Myco-Fungi + Pressure + Heat
+        replacement_alloy = "Fungal-Reinforced Structural Metal"
+        self.inject_regrowth_catalyst(replacement_alloy)
+
+    def inject_regrowth_catalyst(self, alloy):
+        print("Deploying Mycelium-Acid Catalyst for mineral regrowth.")
+        print("Regrowth factors active: Cold/Heat/Pressure/Acidity.")
+
+    def check_system_health(self):
+        for drone in self.drones:
+            if self.detect_damage():
+                drone.deploy_and_fix(self)
+
+class RepairDrone:
+    def __init__(self, id, tool, size):
+        self.id = id
+        self.tool = tool
+        self.size = size
+
+    def deploy_and_fix(self, main_robot):
+        print(f"Drone {self.id} (3ft) deploying {self.tool} for structural welding.")
+
+# Initialize the System
+if __name__ == "__main__":
+    harvester = OmniHarvester()
+    harvester.detect_minerals(mode="Asteroid-Ground-Detection")
