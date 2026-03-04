@@ -1,0 +1,80 @@
+""""""Readme.md""""" 
+
+a aircraft ship vehicle Set With internal Drones and advanced Software Capabilities 
+
+"""
+IpexilusProAi - Unified AGI/ASI Drone Carrier Framework
+Modules: Manus (Logistics), Agent AI (Task Execution), Notebook (Memory)
+Carrier: Oval Stealth Wing (Wide-Body)
+"""
+
+import time
+import json
+import random
+
+class IpexilusProAi:
+    def __init__(self):
+        self.system_status = "Active"
+        self.intelligence_level = "ASI"  # Artificial Super Intelligence
+        self.memory_module = "NotebookLM_Enhanced"
+        self.location = "Stratosphere"
+        
+        # Integration of external widgets and UI
+        self.widgets = ["Bangkok_Node", "Chiang_Mai_Data_Stream", "Phuket_Sensor_Array"]
+        
+    def deploy_manus_logistics(self):
+        print("[Manus] Coordinating global flight paths and resource allocation...")
+        return True
+
+    def run_agi_reasoning(self, mission_params):
+        print(f"[AGI/ASI] Analyzing mission: {mission_params}")
+        # Reasoning logic for mission success
+        return "Optimized Path Found"
+
+class CarrierShip:
+    def __init__(self, build_type="Oval_B2_Hybrid"):
+        self.type = build_type
+        self.dimensions = {"width": "350ft", "length": "80ft"} # Wider than B2
+        self.weapons = None # Strict no-weapon policy
+        self.drone_bays = []
+
+    def release_mother_drones(self, count):
+        print(f"[Carrier] Releasing {count} Mother Drones from high altitude...")
+        return [MotherDrone(id=i) for i in range(count)]
+
+class MotherDrone:
+    def __init__(self, id):
+        self.id = id
+        self.status = "Deployed"
+        self.sub_payload = 10 # Smaller drones inside
+
+    def deploy_micro_drones(self):
+        print(f"  └─ [MotherDrone-{self.id}] Releasing 10 Micro-Drones for local surveillance...")
+
+class ThailandWidget:
+    def __init__(self, city):
+        self.city = city
+        self.data = "Real-time metrics active"
+
+# --- Main Execution Block ---
+if __name__ == "__main__":
+    # Initialize the System
+    system = IpexilusProAi()
+    carrier = CarrierShip()
+    
+    # 1. Start Intelligence Layers
+    system.deploy_manus_logistics()
+    system.run_agi_reasoning("Environmental Monitoring & Data Harvesting")
+    
+    # 2. Deploy First Tier (Ship -> Mother Drones)
+    fleet = carrier.release_mother_drones(5)
+    
+    # 3. Deploy Second Tier (Mother Drones -> Micro Drones)
+    for drone in fleet:
+        drone.deploy_micro_drones()
+        
+    # 4. Activate Widgets
+    for w in system.widgets:
+        print(f"[Widget] Connected to {w}")
+
+    print("\n--- IpexilusProAi Operation Complete ---")
